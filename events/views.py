@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.http import HttpRequest
 from django.contrib.auth import get_user_model
 from rest_framework import viewsets
@@ -9,18 +11,24 @@ from rest_framework.response import Response
 from events.models import Event, Attendance
 from events.serializers import EventSerializer, UserSerializer, RegisterUserSerializer
 from events.filters import EventFilter
+from events.permissions import IsOwnerModifyActions
 
 
 class EventViewSet(viewsets.ModelViewSet):
     queryset = Event.objects.all()
     serializer_class = EventSerializer
     filterset_class = EventFilter
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsOwnerModifyActions]
+
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user)
 
     @action(detail=True, methods=['GET'], permission_classes=[IsAuthenticated])
     def change_attendance(self, request: HttpRequest, **kwargs):
         event: Event = self.get_object()
         user = request.user
+        if event.event_start > datetime.now() :
+            return Response({"status": "unable to register, event already started"})
         if event.attendees.filter(user=user).exists():
             event.attendees.filter(event=event, user=user).delete()
             return Response({"status": "unregistered"})

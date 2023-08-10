@@ -21,8 +21,6 @@ class EventSerializer(serializers.HyperlinkedModelSerializer):
             'attendees',
             'event_start',
             'event_end',
-            'created_at',
-            'created_by'
         ]
         # DRF's __all__ field doesn't include somehow both the id and url
         # it's dependent on serializer class
