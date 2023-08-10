@@ -2,4 +2,5 @@ django
 django-filter
 markdown
 djangorestframework
+djangorestframework-simplejwt
 Faker
